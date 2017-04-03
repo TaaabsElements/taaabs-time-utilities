@@ -86,7 +86,10 @@
 
       get_human_readable_interval: function(begin_date, end_date, period){
         if(period === 'week'){
-          return begin_date.toDateString() + " to " + end_date.toDateString();
+          var mn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            ];
+          return begin_date.getUTCDate() + ' ' + mn[begin_date.getUTCMonth()] + " " + begin_date.getUTCFullYear();
         }
         else if(period === 'month'){
           var mn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -96,6 +99,29 @@
         }
         // TODO adapt this
         return begin_date.toUTCString() + " to " + end_date.toUTCString();
+      },
+
+      get_human_readable_date_short: function(date, period){
+        if(period === 'day'){
+          var d = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        return d[date.getUTCDay()] + ' ' + date.getUTCDate();
+        }
+        else if(period === 'week'){
+          var mn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            ];
+          return date.getUTCDate() + ' ' + mn[date.getUTCMonth()];
+        }
+        else if(period === 'month'){
+          var mn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            ];
+          return mn[date.getUTCMonth()] + " " + date.getUTCFullYear();
+        }
+        else if(period === 'year'){
+          return date.getUTCFullYear();
+        }
+        return date.toUTCString();
       },
 
       get_european_condensed_date: function(date){
@@ -152,6 +178,84 @@
           if (times[i] !== 0) duration += times[i] + " " + times_label[i] + "/ ";
         }
         return duration;
+      },
+
+      get_fittest_period: function(begin, end, count){
+        var duration = end - begin;
+        if( duration <= count ) return 'millisecond';
+        else{
+          duration /= 1000;
+          if( duration <= count ) return 'second';
+          else{
+            duration /= 60;
+            if( duration <= count ) return 'minute';
+            else{
+              duration /= 60;
+              if( duration <= count ) return 'hour';
+              else{
+                duration /= 24;
+                if( duration <= count ) return 'day';
+                else{
+                  duration /= 7;
+                  if( duration <= count ) return 'week';
+                  else{
+                    duration /= 4.5;
+                    if( duration <= count ) return 'month';
+                    else{
+                      return 'years';
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      get_noticeable_dates_from_list: function(list, period, max){
+        var tr = [];
+        var distance = Number.POSITIVE_INFINITY;
+        var target = new Date(list[0]);
+        target = this.get_date_according_to_period(period, target);
+        if(target.valueOf() < list[0]) target = this.get_next_date_with_period(period, target);
+
+        for(var i = 0 ; i < list.length; i++){
+          if(target.valueOf() - list[i] === 0){
+            tr.push(i);
+            target = this.get_next_date_with_period(period, target);
+            distance = Math.abs(target.valueOf() - list[i]);
+          }
+          else if( Math.abs(target.valueOf() - list[i]) < distance){
+            distance = Math.abs(target.valueOf() - list[i]);
+          }
+          else{
+            if(Math.abs(target.valueOf() - list[i]) < Math.abs(target.valueOf() - list[i-1])){
+              tr.push(i);
+            }
+            else{
+              tr.push(i);
+            }
+            target = this.get_next_date_with_period(period, target);
+            distance = Math.abs(target.valueOf() - list[i]);
+          }
+        }
+        var ratio = max / tr.length;
+        if( ratio >= 2){
+          var ntr = [];
+          for(var j = 1; j < ratio; j++){
+            var mc = Math.ceil( tr[0] - ( ( (tr[1] - tr[0]) * j) / ratio ));
+            if(mc > 0) ntr.push( mc );
+          }
+          for(var i = 0; i < tr.length; i++){
+            ntr.push(tr[i]);
+            for(var j = 1; j < ratio; j++){
+              var mc = Math.ceil( tr[i] + ( ( (tr[1] - tr[0]) * j) / ratio ));
+              if(mc < list.length) ntr.push( mc );
+            }
+          }
+          tr = ntr;
+        }
+        return tr;
       },
 
       get_date_according_to_period: function(period, date) {
@@ -336,6 +440,56 @@
         }
         this.set('_intervalRepeaterPointer', result.end);
         return result;
+      },
+
+      get_next_date_with_period: function(period, date){
+        var c= null;
+        switch (period) {
+          case 'millisecond':
+            c = date.getUTCMilliseconds();
+            date.setUTCMilliseconds(c + 1);
+            break;
+          case 'second':
+            c = date.getUTCSeconds();
+            date.setUTCSeconds(c + 1);
+            break;
+          case 'minute':
+            c = date.getUTCMinutes();
+            date.setUTCMinutes(c + 1);
+            break;
+          case 'hour':
+            c = date.getUTCHours();
+            date.setUTCHours(c + 1);
+            break;
+          case 'half-day':
+            c = date.getUTCHours();
+            date.setUTCHours(c + 12);
+            break;
+          case 'day':
+            c = date.getUTCDate();
+            date.setUTCDate(c + 1);
+            break;
+          case 'week':
+            c = date.getUTCDate();
+            date.setUTCDate(c + 7);
+            break;
+          case 'month':
+            c = date.getUTCMonth();
+            d = date.getUTCDate();
+            // TODO FINIR ICI
+            date.setUTCMonth(c + 1);
+            date.setUTCDate(d);
+            break;
+          case 'year':
+            c = date.getUTCMonth();
+            date.setUTCMonth(c + 12);
+            break;
+          case 'custom-period':
+            c = date.valueOf();
+            date = new Date(c + period);
+            break;
+        }
+        return date;
       }
 
     });
