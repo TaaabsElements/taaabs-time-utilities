@@ -328,7 +328,7 @@
         // Get the date day of month
         var day_of_month = date.getUTCDate();
         // Calculate the closest previous monday. Because days start on sunday with Date API, we add one day.
-        var new_day_of_month = day_of_month - day + 1;
+        var new_day_of_month = day_of_month - ((day + 6 ) % 7);
         // Set the date.
         date.setUTCDate(new_day_of_month);
         // Set to midnight
