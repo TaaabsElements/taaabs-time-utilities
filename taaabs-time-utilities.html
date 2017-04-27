@@ -103,7 +103,7 @@
 
       get_human_readable_date_short: function(date, period){
         if(period === 'day'){
-          var d = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+          var d = [ 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
         return d[date.getUTCDay()] + ' ' + date.getUTCDate();
         }
         else if(period === 'week'){
