@@ -102,7 +102,11 @@
       },
 
       get_human_readable_date_short: function(date, period){
-        if(period === 'day'){
+        if(period === 'half-day' || period === 'hour' || period === 'minute'){
+          var d = [ 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+        return date.getUTCHours()+'h'+date.getUTCMinutes()+'\''+date.getUTCSeconds()+'\'\'';
+        }
+        else if(period === 'day'){
           var d = [ 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
         return d[date.getUTCDay()] + ' ' + date.getUTCDate();
         }
@@ -128,6 +132,90 @@
         var m = date.getUTCMonth()+1;
         return date.getUTCDate()+'/'+m+'/'+date.getUTCFullYear()+' '+
                date.getUTCHours()+':'+date.getUTCMinutes()+'\''+date.getUTCSeconds();
+      },
+
+      get_human_rounded_ticks: function(total_duration, ticks_count){
+        var result = [];
+        var sec = 1000;
+        var min = sec*60;
+        var hour = min*60;
+        var day = hour*24;
+        var week = day*7;
+        var months = week*4.34;
+        var years = months*12;
+
+        var split_duration = total_duration / ticks_count;
+
+        var times = [years, months, week, day, hour, min, sec];
+        var times_names = ['years', 'months', 'weeks', 'days', 'hours', 'min', 'sec'];
+        var i = 0;
+        var split_time = 0;
+
+
+        while( (split_duration / times[i]) < 1 && i < times.length) i++;
+
+        split_time = Math.ceil(split_duration / times[i]);
+
+        for(var j = 1 ; j <= ticks_count; j++){
+          result.push({
+            'v': split_time*j*times[i],
+            'f': (j*split_time)+' '+times_names[i]
+          })
+        }
+
+        return result;
+      },
+
+      get_human_rounded_duration: function(duration){
+        if(duration === null || duration === undefined) return '';
+
+        var result = "";
+        var sec = 1000;
+        var min = sec*60;
+        var hour = min*60;
+        var day = hour*24;
+        var week = day*7;
+        var months = week*4.34;
+        var years = months*12;
+
+
+        var d = duration / years;
+        var rest = duration % years;
+        if(d >= 1) result += Math.floor(d) + ' Y, ';
+        if(rest !== 0){
+          d = rest / months;
+          rest = rest % months;
+          if(d >= 1) result += Math.floor(d) + ' M, ';
+          if(rest !== 0){
+            d = rest / week;
+            rest = rest % week;
+            if(d >= 1) result += Math.floor(d) + ' W, ';
+            if(rest !== 0){
+              d = rest / day;
+              rest = rest % day;
+              if(d >= 1) result += Math.floor(d) + ' D, ';
+              if(rest !== 0){
+                d = rest / hour;
+                rest = rest % hour;
+                if(d >= 1) result += Math.floor(d) + ' h, ';
+                if(rest !== 0){
+                  d = rest / min;
+                  rest = rest % min;
+                  if(d >= 1) result += Math.floor(d) + ' m, ';
+                  if(rest !== 0){
+                    d = rest / sec;
+                    rest = rest % sec;
+                    if(d >= 1) result += Math.floor(d) + ' s, ';
+                    if(rest !== 0){
+                      result += Math.floor(rest) + ' ms, ';
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        return result;
       },
 
       get_human_readable_duration: function(begin_date, end_date) {
