@@ -17,7 +17,7 @@
   "main": "taaabs-time-utilities.html",
   "license": "https://github.com/TaaabsElements/taaabs-time-utilities/LICENSE",
   "dependencies": {
-    "polymer": "polymer/polymer"
+    "polymer": "Polymer/polymer#<2.*"
   },
   "devDependencies": {
     "iron-component-page": "polymerelements/iron-component-page#^1.0.0",
